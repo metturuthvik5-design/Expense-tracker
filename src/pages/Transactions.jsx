@@ -3,92 +3,144 @@ import { ExpenseContext } from "../context/ExpenseContext";
 import { Link } from "react-router-dom";
 
 const Transactions = () => {
-  const { transactions, deleteTransaction, editTransaction } = useContext(ExpenseContext);
+  const context = useContext(ExpenseContext);
+
+  const transactions = context?.transactions || [];
+  const deleteTransaction = context?.deleteTransaction || (() => {});
+  const editTransaction = context?.editTransaction || (() => {});
+
   const [editingId, setEditingId] = useState(null);
-  const [editData, setEditData] = useState({ description: "", amount: "", category: "" });
+  const [editData, setEditData] = useState({
+    description: "",
+    amount: "",
+    category: "",
+  });
 
   const startEdit = (txn) => {
     setEditingId(txn.id);
-    setEditData({ description: txn.description, amount: txn.amount, category: txn.category });
+    setEditData({
+      description: txn.description || "",
+      amount: txn.amount || "",
+      category: txn.category || "",
+    });
   };
 
   const handleEditChange = (e) => {
-    setEditData({ ...editData, [e.target.name]: e.target.value });
+    setEditData({
+      ...editData,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const saveEdit = () => {
-    editTransaction(editingId, editData);
+    if (editTransaction) {
+      editTransaction(editingId, editData);
+    }
     setEditingId(null);
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">All Transactions</h2>
-      <Link to="/dashboard" className="text-blue-500 underline mb-4 inline-block">← Back to Dashboard</Link>
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="border-b">
-            <th className="p-2 text-left">Date</th>
-            <th className="p-2 text-left">Description</th>
-            <th className="p-2 text-left">Amount</th>
-            <th className="p-2 text-left">Category</th>
-            <th className="p-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {transactions.map((txn) => (
-            <tr key={txn.id} className="border-b">
-              {editingId === txn.id ? (
-                <>
-                  <td className="p-2">{txn.date}</td>
-                  <td className="p-2">
-                    <input
-                      type="text"
-                      name="description"
-                      value={editData.description}
-                      onChange={handleEditChange}
-                      className="border p-1 w-full"
-                    />
-                  </td>
-                  <td className="p-2">
-                    <input
-                      type="number"
-                      name="amount"
-                      value={editData.amount}
-                      onChange={handleEditChange}
-                      className="border p-1 w-full"
-                    />
-                  </td>
-                  <td className="p-2">
-                    <input
-                      type="text"
-                      name="category"
-                      value={editData.category}
-                      onChange={handleEditChange}
-                      className="border p-1 w-full"
-                    />
-                  </td>
-                  <td className="p-2 space-x-2">
-                    <button onClick={saveEdit} className="bg-green-500 text-white px-2 py-1 rounded">Save</button>
-                    <button onClick={() => setEditingId(null)} className="bg-gray-400 text-white px-2 py-1 rounded">Cancel</button>
-                  </td>
-                </>
-              ) : (
-                <>
-                  <td className="p-2">{txn.date}</td>
-                  <td className="p-2">{txn.description}</td>
-                  <td className={`p-2 ${txn.amount < 0 ? "text-red-500" : "text-green-500"}`}>₹{txn.amount}</td>
-                  <td className="p-2">{txn.category}</td>
-                  <td className="p-2 space-x-2">
-                    <button onClick={() => startEdit(txn)} className="bg-blue-500 text-white px-2 py-1 rounded">Edit</button>
-                    <button onClick={() => deleteTransaction(txn.id)} className="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
-                  </td>
-                </>
-              )}
+    <div style={{ padding: "20px" }}>
+      <h2>All Transactions</h2>
+
+      <Link
+        to="/dashboard"
+        style={{
+          color: "blue",
+          textDecoration: "underline",
+          display: "inline-block",
+          marginBottom: "20px",
+        }}
+      >
+        ← Back to Dashboard
+      </Link>
+
+      {transactions.length === 0 ? (
+        <p>No transactions found.</p>
+      ) : (
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+          }}
+        >
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Category</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+
+          <tbody>
+            {transactions.map((txn) => (
+              <tr key={txn.id}>
+                {editingId === txn.id ? (
+                  <>
+                    <td>{txn.date}</td>
+
+                    <td>
+                      <input
+                        type="text"
+                        name="description"
+                        value={editData.description}
+                        onChange={handleEditChange}
+                      />
+                    </td>
+
+                    <td>
+                      <input
+                        type="number"
+                        name="amount"
+                        value={editData.amount}
+                        onChange={handleEditChange}
+                      />
+                    </td>
+
+                    <td>
+                      <input
+                        type="text"
+                        name="category"
+                        value={editData.category}
+                        onChange={handleEditChange}
+                      />
+                    </td>
+
+                    <td>
+                      <button onClick={saveEdit}>Save</button>
+
+                      <button onClick={() => setEditingId(null)}>
+                        Cancel
+                      </button>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td>{txn.date}</td>
+                    <td>{txn.description}</td>
+                    <td>₹{txn.amount}</td>
+                    <td>{txn.category}</td>
+
+                    <td>
+                      <button onClick={() => startEdit(txn)}>
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => deleteTransaction(txn.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };
